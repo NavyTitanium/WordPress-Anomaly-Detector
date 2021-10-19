@@ -1,4 +1,4 @@
-# Wordpress Anomaly Detector :rotating_light:	
+# WordPress Anomaly Detector :rotating_light:	
 Compare the files and folders of the original source code of WordPress against a website. This multithreaded script will crawl a given website and search for a directory listing.
 
 ## Purpose
