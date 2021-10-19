@@ -4,9 +4,14 @@ import requests
 import urllib3
 from bs4 import BeautifulSoup
 from termcolor import colored
-
+import threading
+import queue
 
 wp_basepath=os.path.join(os.path.dirname(os.path.abspath(__file__)),"WordPress-5.8.1")
+
+if not os.path.isdir(wp_basepath):
+    exit("The WordPress source code couldn't be found at " + wp_basepath)
+
 crawlable_dir= {}
 UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.71 Safari/537.36"
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -50,6 +55,7 @@ def parse_page(content):
                     files.append(file_or_folder)
 
     return folders,files
+
 def is_directoy_listing_enable(url):
     try:
         resp=requests.get(url, verify=False,timeout=5, headers={'User-Agent': UA})
@@ -59,7 +65,6 @@ def is_directoy_listing_enable(url):
     except Exception as e:
         print("ERROR: "+str(e))
         return False,""
-
 
 def subdirectory_depth(level):
     keys=[]
@@ -89,23 +94,38 @@ def load_files():
     for items in to_append:
         crawlable_dir[items]=[]
     return crawlable_dir
+
+def crawl(q,website,level):
+    while q.qsize() > 0:
+        path = q.get()
+        folders=[]
+        files=[]
+        isEnable,response=is_directoy_listing_enable(website+path)
+        if isEnable:
+            folders,files=parse_page(response)
+            find_anomalies(folders,files,path,level)
+
 def main(website):
     crawlable_dir=load_files()
     nb_items= sum([len(x) for x in crawlable_dir.values()])
     print("[*] "+str(len(crawlable_dir)) + " subdirectories and " +str(nb_items) + " PHP files loaded for comparison")
 
-    for level in range(4):
-        level_alerted=False
-        for path in subdirectory_depth(level):
-            folders=[]
-            files=[]
-            isEnable,response=is_directoy_listing_enable(website+path)
-            if isEnable:
-                if not level_alerted:
-                    print("[*] Results for directories depth level "+str(level))
-                    level_alerted=True
-                folders,files=parse_page(response)
-                find_anomalies(folders,files,path,level)
+    # WordPress usually has 4 levels of folder
+    # We will use 4 queues to process those paths
+    q_lvl1 = queue.Queue()
+    q_lvl2 = queue.Queue()
+    q_lvl3 = queue.Queue()
+    q_lvl4 = queue.Queue()
+    [q_lvl1.put(x) for x in subdirectory_depth(1)]
+    [q_lvl2.put(x) for x in subdirectory_depth(2)]
+    [q_lvl3.put(x) for x in subdirectory_depth(3)]
+    [q_lvl4.put(x) for x in subdirectory_depth(4)]
+
+    for i in range(5):
+        threading.Thread(target=crawl, args=(q_lvl1,website,1)).start()
+        threading.Thread(target=crawl, args=(q_lvl2,website,2)).start()
+        threading.Thread(target=crawl, args=(q_lvl3,website,3)).start()
+        threading.Thread(target=crawl, args=(q_lvl4,website,4)).start()
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
