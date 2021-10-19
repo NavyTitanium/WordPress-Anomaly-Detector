@@ -3,6 +3,9 @@ Compare the files and folders of the original source code of WordPress against a
 
 ## Purpose
 It can be used agaisn't infected & poorly configured sites to hunt for malicious PHP files :monocle_face:	
+
+For it to work, the directory listing of the web server must be enabled.
+
 ## Update the list of files
 
 Get [the latest release of WordPress](https://github.com/WordPress/WordPress/releases) and unzip it next to the script. After unzipping the archive, simply change the version in the script. It is currently configured to read the files in the folder **WordPress-5.8.1**.
