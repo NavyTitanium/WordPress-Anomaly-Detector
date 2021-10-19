@@ -2,7 +2,7 @@
 Compare the files and folders of the original source code of WordPress against a website. This multithreaded script will crawl a given website and search for a directory listing.
 
 ## Purpose
-It can be used agaisn't infected & poorly configured sites to hunt for malicious files :monocle_face:	
+It can be used agaisn't infected & poorly configured sites to hunt for malicious PHP files :monocle_face:	
 ## Update the list of files
 
 Get [the latest release of WordPress](https://github.com/WordPress/WordPress/releases) and unzip it next to the script. After unzipping the archive, simply change the version in the script. It is currently configured to read the files in the folder **WordPress-5.8.1**.
